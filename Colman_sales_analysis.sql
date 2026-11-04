@@ -2,13 +2,34 @@
 -- Israel Colman
 
 -- Sales Territory State:
--- MA
+-- MA (Massachusetts)
 
 
 -- What is total revenue overall for sales in the assigned territory, plus the start date and end date
 -- that tell you what period the data covers?
 
 USE sample_sales;
+
+SELECT
+    FORMAT(SUM(Sale_Amount), 2) AS Total_Revenue,
+    MIN(Transaction_Date) AS Start_Date,
+    MAX(Transaction_Date) AS End_Date
+FROM
+(
+    SELECT
+        Sale_Amount,
+        Transaction_Date
+    FROM store_sales ss
+    WHERE (Store_ID BETWEEN 801 AND 817) OR Store_ID = 730
+
+    UNION ALL
+
+    SELECT
+        SalesTotal,
+        Date
+    FROM online_sales
+    WHERE ShipToState = 'Massachusetts'
+) TerritorySales;
 
 
 SELECT 
@@ -91,7 +112,23 @@ WHERE (Store_ID BETWEEN 801 AND 817) OR Store_ID = (730)
 GROUP BY sl.StoreLocation
 ORDER BY SUM(Sale_Amount) DESC;
 
+
+-- Which Category Makes the most revenue?
+
+SELECT p.Categoryid, ic.Category, 
+ROUND(SUM(ss.Sale_Amount), 2) AS Total_Transaction_Amount
+FROM store_sales ss
+INNER JOIN products p
+ON p.ProdNum = ss.Prod_Num
+INNER JOIN inventory_categories ic
+ON ic.Categoryid = p.Categoryid
+WHERE (ss.Store_ID BETWEEN 801 AND 817) OR ss.Store_ID = 730
+GROUP BY p.Categoryid, ic.Category
+ORDER BY Total_Transaction_Amount DESC;
+
+
 -- What is your recommendation for where to focus sales attention in the next quarter?
 --
 -- My recommendation is to find out why the Worcester store is performing so good. Set up a meeting with that store and gain insight
--- as to why that store is performing so well. I would then 
+-- as to why that store is performing so well. I would also focus on marketing and selling Technology & Accessories, Textbooks, And Apparel/Merchandise
+-- as those are our top selling Categories.
