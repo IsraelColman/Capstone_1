@@ -53,6 +53,32 @@ WHERE sl.State = 'Massachusetts'
 GROUP BY Year, Month;
 
 
+SELECT YEAR(Transaction_Date) AS Year,
+MONTH (Transaction_Date) AS Month,
+FORMAT(SUM(Sale_Amount), 2) AS Total_Sales
+FROM
+(
+SELECT 
+Transaction_Date,
+Sale_Amount
+FROM store_sales
+WHERE (Store_ID BETWEEN 801 AND 817) OR Store_ID = 730
+
+UNION ALL
+
+SELECT 
+Date,
+SalesTotal
+FROM online_sales
+WHERE ShiptoState = 'Massachusetts'
+) Revenue_Breakdown
+GROUP BY 
+YEAR(Transaction_Date),
+MONTH(Transaction_Date)
+ORDER BY
+YEAR, 
+MONTH;
+
 
 -- Provide a comparison of total revenue for the specific sales territory and the region it belongs to.
 -- (region is Maryland, Massachusetts, Maine, and New Jersey)
@@ -61,6 +87,9 @@ GROUP BY Year, Month;
 SELECT 
 'Region' AS Sales_Type,
 FORMAT(SUM(Sale_Amount), 2) AS Total_Sales
+FROM 
+(
+SELECT Sale_Amount
 FROM store_sales ss
 INNER JOIN store_locations sl
 ON sl.StoreId = Store_ID
@@ -68,13 +97,30 @@ WHERE sl.State IN ('Massachusetts', 'Maryland', 'Maine', 'New Jersey')
 
 UNION ALL
 
+SELECT SalesTotal
+FROM online_sales
+WHERE ShiptoState IN ('Massachusetts', 'Maryland', 'Maine', 'New Jersey')
+)Region_Sales
+
+UNION ALL
+
 SELECT 
 'Territory' AS Sales_Type,
 FORMAT(SUM(Sale_Amount), 2) AS Total_Sales
+FROM 
+(
+SELECT Sale_Amount
 FROM store_sales ss
 INNER JOIN store_locations sl
 ON sl.StoreId = Store_ID
-WHERE sl.State = 'Massachusetts';
+WHERE sl.State = 'Massachusetts'
+
+UNION ALL
+
+SELECT SalesTotal
+FROM online_sales
+WHERE ShiptoState = 'Massachusetts'
+)Territory_Sales;
 
 
 -- What is the number of transactions per month and average transaction amount by product
@@ -87,6 +133,28 @@ FROM store_sales
 WHERE (Store_ID BETWEEN 801 AND 817) OR Store_ID = 730
 GROUP BY MONTH, YEAR;
 
+SELECT MONTH(Transaction_Date) AS MONTH,
+YEAR(Transaction_Date) AS YEAR,
+COUNT(*) AS Transactions
+FROM 
+( 
+SELECT 
+Transaction_Date
+FROM store_sales
+WHERE (Store_ID BETWEEN 801 AND 817) OR Store_ID = 730
+
+UNION ALL
+
+SELECT
+Date
+FROM online_sales
+WHERE ShiptoState = 'Massachusetts'
+) Transactions_per_Month
+GROUP BY 
+MONTH(Transaction_Date),
+YEAR(Transaction_Date);
+
+
 SELECT p.Categoryid, ic.Category, ROUND(AVG(ss.Sale_Amount), 2) AS Avg_Transaction_Amount
 FROM store_sales ss
 INNER JOIN products p
@@ -96,6 +164,7 @@ ON ic.Categoryid = p.Categoryid
 WHERE (ss.Store_ID BETWEEN 801 AND 817) OR ss.Store_ID = 730
 GROUP BY p.Categoryid, ic.Category
 ORDER BY Avg_Transaction_Amount DESC;
+
 
 
 -- Can you provide a ranking of in-store sales performance by each store in the sales territory, or a
