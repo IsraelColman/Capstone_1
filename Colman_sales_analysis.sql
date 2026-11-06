@@ -94,7 +94,7 @@ GROUP BY sl.StoreLocation
 ORDER BY SUM(Sale_Amount) DESC;
 
 
--- Which Category Makes the most revenue?
+-- Which Category generates the most revenue?
 
 SELECT p.Categoryid, ic.Category, 
 ROUND(SUM(ss.Sale_Amount), 2) AS Total_Transaction_Amount
